@@ -4,64 +4,77 @@ import random
 os.system('cls')
 
 opencards = 0
-POS = 0
 D1 = 0
 D2 = 0
 answear = ""
-p1Money = 150000
+passereStart = 20000
 ransjanse = 0
 string = "1?1!;2?22#3§33;4?44¤5?55;66§6#77?7;?8!8"
+playerturn = 1
+
+class Player:
+    def __init__(self, id : int, name : str):
+        self.id = id
+        self.name = name
+        self.money = 150000
+        self.pos = 0
+    def __str__(self):
+        return "[Player %i - %s (%i kr)]" %(self.id, self.name, self.money)
 
 class Location:
-    def __init__(self, id : int, name : string):        
+    def __init__(self, id : int, name : str):        
         self.id = id
         self.name = name
     def __str__(self):
-        return self.name
+        return "[(%i) %s]" %(self.id,self.name)
+
+
+class ChanceCard:
+    def __init__(self, text, moveTo, amount, collect=True):
+        self.text = text
+        self.moveTo = moveTo
+        self.amount = amount
+        self.collect = collect
 
 class Chance(Location):
     def __init__(self, id):
         super().__init__(id, name = "Prøv lykken")   
         self.id = id
-        def GetCard():
-            return chanceCards[random.randint(0, 17)]
+    def getCard(self) -> ChanceCard:
+        return chanceCards[random.randint(0, 17)]
 
-class ChanceCard:
-  def __init__(self, text, moveTo, amount, collect=True):
-    self.text = text
-    self.moveTo = moveTo
-    self.amount = amount
-    self.collect = collect
+
 
 class Asset(Location):
-    def __init__(self, id, name, price):
+    def __init__(self, id, name, price, rent):
         super().__init__(id, name)   
         self.id = id
         self.name = name
         self.price = price
+        self.rent = rent
         self.mortgage = price/2
         self.ownerId = -1
 
 class Street(Asset):
     def __init__(self, id, name, price, rent, houseCost, streettype):
-        super().__init__(id, name, price)        
-        self.rent = rent
+        super().__init__(id, name, price, rent)
         self.houseCost = houseCost       
         self.streettype = streettype
 
 class Cinema(Asset):
      def __init__(self, id, name):
-        super().__init__(self, id, price = 20000)        
-        self.rent = [2500, 5000, 10000, 20000]
-
+        super().__init__(id, name, price = 20000, rent = [2500, 5000, 10000, 20000]) 
+ 
 class Culture(Asset):
      def __init__(self, id, name):
-        super().__init__(id, name, price = 15000)        
-        self.rent = [400, 1000]
+        super().__init__(id, name, price = 15000, rent = [400, 1000]) 
+        
+players = [
+    Player(1, "LOLeo"),
+    Player(2, "pappaREal")
+]
 
-
-
-locations = [
+locations  = [
     Location(1, "Start"),
     Street(2, "Frognerveien", 6000, [200, 1000, 3000, 9000, 16000, 25000], 5000, 1),
     Chance(3), 
@@ -105,7 +118,7 @@ locations = [
 ]
 
 
-chanceCards = [
+chanceCards : ChanceCard = [
     ChanceCard("Du har kolidert med bilen! Betal kr 5000 for ny støt fanger.", -1, -5000), 
     ChanceCard("Flytt direkte til fengsel. Selv om du passerer START får du ikke kr 20000.", 10, 0, False),
     ChanceCard("Motta kr 30000 fra en onkel i amerika.", -1, 30000),
@@ -140,14 +153,11 @@ print("| |\ \_/ /| | | | | |     | |     | | | |   | | | |\ \| | | |_\ \____| | 
 print("| | \   / | | | | | |___  | |___  | | |_|   |_| | | \   | | |__\ \___  | | \ \ ")
 print("|_|  \_/  |_| |_| |_____| |_____| |_|    |_|    |_|  \ _| |_|   \_\__| |_|  \_\ ")
 
-#print(str(POS + 1) + "-" + locations[POS])
-#print("kr: " + str(p1Money))
-
 def RanDice(currentPos):
    
     ekstra = False
     T_F = True
-    os.system('cls')
+    
     
     D1 = random.randint(1, 6)
     D2 = random.randint(1, 6)
@@ -161,37 +171,71 @@ def RanDice(currentPos):
     print("")
     return currentPos + D3, ekstra
 
+playerId = 0
+ekstra = True
+
 while answear == "":
-    answear = input("enter = rull terning: ")
-    POS = RanDice(POS)[0]
-    if POS > 39:
-        p1Money += 20000
-        POS -= 39
-    elif POS == 38:
-        p1Money -= 10000
-    if p1Money < 0 and opencards == 0:
-        print("du tapte:(")
-        break
-    elif p1Money > 999999:
-        print("du vant")
+    if ekstra:
+        ekstra=False
+    else:
+        if playerId == 0:
+            playerId = 1
+        else:
+            playerId = 0
+    
+
+    player : Player = players[playerId]
+    answear = input(player.name)
+    os.system('cls')
+    if answear != "":
+        print("Goodbye!")
         break
 
-    
-    loc = locations[POS]
-    print(str(POS + 1) + "-" + str(loc) )
-   
-    
-    print(string)
-    print(" " * (POS - 1) + "^")
-    print("du har: " + str(p1Money) + " kr")
+  
+    if  answear == " ":
+      
+        ekstra = True        
+    else:
+        test = RanDice(player.pos)
+        ekstra = test[1]
+        player.pos = test[0]
 
-    # if locations[POS] == "prøv lykken":
-    #     ransjanse = random.randint(0, 17)
-    #     chance = chanceCards[ransjanse]
-    #     print(chance.text)
-    #     if chance.moveTo!=-1:
-    #         if(chance.collect and chance.moveTo < POS):
-    #             p1Money += 20000
-    #         POS = chance.moveTo
-    #     p1Money += chance.amount
-os.system('cls')
+        if player.pos > 39:
+            players[playerId].money += passereStart          
+            player.pos -= 39      
+        if players[playerId].money < 0 and opencards == 0:
+            print("du tapte:(")
+            break
+        elif players[playerId].money > 999999:
+            print("du vant")
+            break
+
+        
+        loc = locations[player.pos]
+        print(loc)
+        if issubclass(type(loc),Asset):
+            asset : Asset = loc
+            if asset.ownerId == -1:
+                if players[playerId].money >= asset.price:
+                    if input("Enter = kjøp ") == "":
+                        asset.ownerId = player.id
+                        players[playerId].money -= asset.price
+            elif asset.ownerId!=player.id:
+                print("%s eies av %s du må betale %i kr" %(asset, player.name, asset.rent[0]))
+                player.money -= asset.rent[0]
+
+        if(type(loc) == Chance):
+            chance : Chance = loc
+            card : ChanceCard = chance.getCard()
+            print(card.text)
+            players[playerId].money += card.amount
+            if card.moveTo!=-1:
+                if(card.collect and card.moveTo < player.pos):
+                    players[playerId].money += passereStart
+                player.pos = card.moveTo
+            
+
+    print(player)
+    indices = [i for i, x in enumerate(locations) if  issubclass(type(x),Asset) and x.ownerId == player.id] 
+    for index in indices:
+        print(locations[index])
