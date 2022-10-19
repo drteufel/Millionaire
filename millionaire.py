@@ -1,9 +1,7 @@
 import os
 import random
-
 from colorama import Fore
 from colorama import Style
-
 
 
 class Player:
@@ -60,7 +58,8 @@ class Street(Asset):
         super().__init__(location_id, name, price, rent)
         self.house_cost = house_cost
         self.street_type = street_type
-    def __str__(self):        
+
+    def __str__(self):
         fore: Fore = Fore.WHITE
         if self.street_type == 1:
             fore = Fore.BLUE
@@ -78,7 +77,7 @@ class Street(Asset):
             fore = Fore.LIGHTYELLOW_EX
         elif self.street_type == 8:
             fore = Fore.YELLOW
-            
+
         return "%s[(%i) %s]%s" % (fore, self.location_id, self.name, Style.RESET_ALL)
 
 
@@ -179,18 +178,23 @@ chanceCards = [
     ChanceCard("I annledning av bankens 100-års-jubileum utbetales kr 5000 i ekstra bonus.", -1, 5000),
     ChanceCard("Du har kjøpt et maleri på loppemarked og selger det videre med kr 5000 i fortjenelse "
                "som utbetales av banken.", -1, 5000),
-    ChanceCard("Du har fødselsdag. Motta kr 1000 av hver motspiller i gave.", -1, 1000), #???
-    ChanceCard("Rykk fram til nermeste kino og betal eieren to ganger den leie han ellers er berettiget til. " 
-               "Hvis ingen eier kinoen, kan du kjøpe den av banken.", -1, 0), #???
-    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0), #???
-    ChanceCard("Betal for snørYdding kr 1000 pr tomt du eier.", -1, 0), #???
-    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0), #???
-    ChanceCard("Betal kr 2500 i brannforsikringspremie. Dette kortet oppbevares. Ved brann betales bare 10% av bygningens verdi.", -1, 0), #???
-    ChanceCard("Gaten asfalteres. Du må betale et tilskudd på kr 5000 pr hus og kr 12500 pr hotell/slott.", -1, 0), #???
-    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0), #???
+    ChanceCard("Du har fødselsdag. Motta kr 1000 av hver motspiller i gave.", -1, 1000),  # ???
+    ChanceCard("Rykk fram til nermeste kino og betal eieren to ganger den leie han ellers er berettiget til. "
+               "Hvis ingen eier kinoen, kan du kjøpe den av banken.", -1, 0),  # ???
+    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0),  # ???
+    ChanceCard("Betal for snørYdding kr 1000 pr tomt du eier.", -1, 0),  # ???
+    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0),  # ???
+    ChanceCard(
+        "Betal kr 2500 i brannforsikringspremie. Dette kortet oppbevares. Ved brann betales bare 10% av bygningens verdi.",
+        -1, 0),  # ???
+    ChanceCard("Gaten asfalteres. Du må betale et tilskudd på kr 5000 pr hus og kr 12500 pr hotell/slott.", -1, 0),
+    # ???
+    ChanceCard("Arrestanten løslates. Dette kortet kan oppbevares til du får bruk for det.", -1, 0),  # ???
     ChanceCard("Du må reparere det elektriske anlegget. Betal kr 2500 pr hus og kr 12500 pr hotell/slott.", -1, 0),
-    ChanceCard("Dine hus og hoteller/slott brenner. Har du assurert (dvs tidligere trukket sjansekort ang brannforsikringspremie) "
-               "betales bare 10% av bigningenes verdi. Bygningene kan da bli stående. Bygningene leveres til banken hvis du ikke har assurert.", -1, 0) #???
+    ChanceCard(
+        "Dine hus og hoteller/slott brenner. Har du assurert (dvs tidligere trukket sjansekort ang brannforsikringspremie) "
+        "betales bare 10% av bigningenes verdi. Bygningene kan da bli stående. Bygningene leveres til banken hvis du ikke har assurert.",
+        -1, 0)  # ???
 ]
 
 print(" __       __   _   _       _       _      _      __    _   __________   ____")
@@ -206,9 +210,9 @@ def ran_dice():
     d2 = random.randint(1, 6)
     print("Terning 1 er " + str(d1))
     print("Terning 2 er " + str(d2))
-    print("Du fikk " + str(d1+d2))
+    print("Du fikk " + str(d1 + d2))
 
-    return d1+d2, d1 == d2
+    return d1 + d2, d1 == d2
 
 
 while answer == "":
@@ -255,17 +259,17 @@ while answer == "":
                         asset.ownerId = player.player_id
                         player.money -= asset.price
             elif asset.ownerId != player.player_id:
-                rent = 0
+                rent_to_pay = 0
                 if type(loc) == Cinema:
                     indices = [i for i, x in enumerate(locations) if type(x) == Cinema and x.ownerId == asset.ownerId]
-                    rent = asset.rent[len(indices)-1]             
+                    rent_to_pay = asset.rent[len(indices) - 1]
                 elif type(loc) == Culture:
                     indices = [i for i, x in enumerate(locations) if type(x) == Culture and x.ownerId == asset.ownerId]
-                    rent = asset.rent[len(indices)-1]*test[0]                     
+                    rent_to_pay = asset.rent[len(indices) - 1] * test[0]
                 else:
-                    rent = asset.rent[0]
+                    rent_to_pay = asset.rent[0]
 
-                print("%s eies av %s du må betale %i kr" % (asset, players[asset.ownerId-1].name, rent))
+                print("%s eies av %s du må betale %i kr" % (asset, players[asset.ownerId - 1].name, rent_to_pay))
                 player.money -= asset.rent[0]
 
         if type(loc) == Chance:
@@ -277,7 +281,7 @@ while answer == "":
                 if card.collect and card.move_to < player.pos:
                     player.money += passStart
                 player.pos = card.move_to
- 
+
     indices = [i for i, x in enumerate(locations) if issubclass(type(x), Asset) and x.ownerId == player.player_id]
     for index in indices:
         print(locations[index])
