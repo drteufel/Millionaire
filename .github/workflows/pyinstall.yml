@@ -1,4 +1,5 @@
-﻿name: Python package
+﻿if: github.repository_owner == 'LOLeoReal'
+name: Python package
 
 on: [ push ]
 jobs:
