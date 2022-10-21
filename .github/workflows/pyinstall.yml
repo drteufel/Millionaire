@@ -10,15 +10,17 @@ jobs:
   build:
     if: github.repository_owner == 'LOLeoReal'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@main
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
-        path: .
+        python-version: 3.10
+        
+    - run: pip install pyinstaller
+    - run: pyinstaller --onefile millionaire.py
 
     - uses: actions/upload-artifact@v2
       with:
-        name: name-of-artifact
-        path: src/dist/windows
+        path: dist/millionaire.exe
