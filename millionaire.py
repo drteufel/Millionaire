@@ -1,3 +1,4 @@
+from operator import contains
 import os
 import random
 from colorama import Fore
@@ -50,7 +51,18 @@ class Asset(Location):
         self.price = price
         self.rent = rent
         self.mortgage = price / 2
-        self.ownerId = -1
+        self.owner_id = -1
+        self.is_mortgaged = False
+    def mortgage_asset(self):
+        if self.is_mortgaged:
+            return 0
+        self.is_mortgaged = True
+        return self.mortgage
+    def un_mortgage_asset(self):
+        if not self.is_mortgaged:
+            return 0
+        self.is_mortgaged = False
+        return -self.mortgage
 
 
 class Street(Asset):
@@ -58,6 +70,14 @@ class Street(Asset):
         super().__init__(location_id, name, price, rent)
         self.house_cost = house_cost
         self.street_type = street_type
+        self.houses = 0
+
+    def can_buy_house(self, player_id : int):
+        indices = [i for i, x in enumerate(locations) if type(x) == Street and player_id == self.owner_id and self.street_type == x.street_type]
+        if self.street_type == 1 or self.street_type == 8:
+            return len(indices) == 2
+        else:
+            return len(indices) == 3
 
     def __str__(self):
         fore: Fore = Fore.WHITE
@@ -224,7 +244,7 @@ while answer == "":
             playerIndex = 0
     player: Player = players[playerIndex]
 
-    answer = input("Spiller: " + player.name + ". Trykk enter for å rulle terning")
+    answer = input("Spiller: " + str(player) + ". Trykk enter for å rulle terning")
     os.system("cls")
     if answer != "":
         print("Goodbye!")
@@ -253,24 +273,25 @@ while answer == "":
         print(loc)
         if issubclass(type(loc), Asset):
             asset: Asset = loc
-            if asset.ownerId == -1:
+            if asset.owner_id == -1:
                 if player.money >= asset.price:
-                    if input("Enter = kjøp ") == "":
-                        asset.ownerId = player.player_id
+                    if input("koster " + str(asset.price) + " Enter = kjøp ") == "":
+                        asset.owner_id = player.player_id
                         player.money -= asset.price
-            elif asset.ownerId != player.player_id:
+            elif asset.owner_id != player.player_id:
                 rent_to_pay = 0
                 if type(loc) == Cinema:
-                    indices = [i for i, x in enumerate(locations) if type(x) == Cinema and x.ownerId == asset.ownerId]
+                    indices = [i for i, x in enumerate(locations) if type(x) == Cinema and x.owner_id == asset.owner_id]
                     rent_to_pay = asset.rent[len(indices) - 1]
                 elif type(loc) == Culture:
-                    indices = [i for i, x in enumerate(locations) if type(x) == Culture and x.ownerId == asset.ownerId]
+                    indices = [i for i, x in enumerate(locations) if type(x) == Culture and x.owner_id == asset.owner_id]
                     rent_to_pay = asset.rent[len(indices) - 1] * test[0]
                 else:
-                    rent_to_pay = asset.rent[0]
+                    street : Street = asset
+                    rent_to_pay = asset.rent[street.houses]
 
-                print("%s eies av %s du må betale %i kr" % (asset, players[asset.ownerId - 1].name, rent_to_pay))
-                player.money -= asset.rent[0]
+                print("%s eies av %s du må betale %i kr" % (asset, players[asset.owner_id - 1].name, rent_to_pay))
+                player.money -= rent_to_pay
 
         if type(loc) == Chance:
             chance: Chance = loc
@@ -281,7 +302,46 @@ while answer == "":
                 if card.collect and card.move_to < player.pos:
                     player.money += passStart
                 player.pos = card.move_to
-
-    indices = [i for i, x in enumerate(locations) if issubclass(type(x), Asset) and x.ownerId == player.player_id]
-    for index in indices:
-        print(locations[index])
+    print(str(player))
+    if input("Vill du se eiendomer: J = Ja ").upper() == "J":
+        indices = [i for i, x in enumerate(locations) if issubclass(type(x), Asset) and x.owner_id == player.player_id]
+        if len(indices) == 0:
+            print("Du har ingen eiendommer")
+        else:
+            print("{")
+            for index in indices:
+                print(locations[index])
+            print("}")
+            id = "0"
+            while id.isdigit():
+                print(str(player))
+                id = input("Velg en eiendom for å redigere den. int: ")
+                if id.isdigit():
+                    index = int(id)-1
+                    if contains(indices, index):
+                        asset : Asset = locations[index]
+                        print(locations[index])
+                        action = input("Hva vill du gjøre: P = panset, L = løse inn, H = kjøpe hus, S = selge hus ").upper()
+                        if action == "P":
+                            player.money += asset.mortgage_asset()
+                        elif action == "L":
+                            player.money += asset.un_mortgage_asset()
+                        elif action == "H":
+                            if type(asset) != Street:
+                                print("Du kan bare kjøpe hus på gater")
+                            else:
+                                street: Street = asset
+                                print(street)
+                                if not street.can_buy_house:
+                                    print("Du eier ikke alle eiendommene i denne gata")
+                                else:
+                                    if(player.money>street.house_cost and street.houses<5):
+                                        street.houses +=1
+                                        player.money -= street.house_cost
+                                    else:
+                                        print("du har ikke nok penger eller det er allerede hotell her")
+                        elif action == "S":
+                            print("ikke implomentert")
+                            
+                    else:
+                        print("du har ikke denne eiendommen")
