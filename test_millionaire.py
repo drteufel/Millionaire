@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 import millionaire
-from millionaire import Asset, Player, Street, locations, Chance, chanceCards, players
+from millionaire import Asset, Player, Street, locations, Chance, chanceCards, players, Cinema
 
 
 class TestPlayer:
@@ -17,12 +17,40 @@ class TestPlayer:
 
 
 class TestChanceCards:
-    def test_one(self):
+    def test_27(self):
         player: Player = players[0]
         money_before = player.money
         chance: Chance = locations[2]
         chance.draw(player, 27)
         assert player.money == money_before+1000*(len(players)-1)
+
+    def test_28(self, monkeypatch):
+        player: Player = players[0]     
+        chance: Chance = locations[2]
+        monkeypatch.setattr('builtins.input', lambda _: "")
+        chance.draw(player, 28)
+        assert player.pos == 5
+        assert player.money == 130000
+        monkeypatch.setattr('builtins.input', lambda _: "")
+        chance.draw(player, 28)
+        assert player.pos == 15
+        assert player.money == 110000
+        monkeypatch.setattr('builtins.input', lambda _: "")
+        chance.draw(player, 28)
+        assert player.pos == 25
+        assert player.money == 90000
+        chance.draw(player, 28)
+        assert player.pos == 35
+        assert player.money == 70000
+        chance.draw(player, 28)
+        assert player.pos == 5
+        assert player.money == 90000
+        asset: Asset = locations[15]
+        asset.owner_id = 2
+        chance.draw(player, 28)
+        assert player.pos == 15
+        assert player.money == 70000
+
 
 
 class TestAsset:

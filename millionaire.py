@@ -56,7 +56,24 @@ class Chance(Location):
             for p in players:
                 p.money -= card.amount
             player.money += 1000 * len(players)
-        elif card.card_id == 
+        elif card.card_id == 28:
+            if player.pos < 5:
+                player.pos = 5
+            elif player.pos < 15:
+                player.pos = 15
+            elif player.pos < 25:
+                player.pos = 25
+            elif player.pos < 35:
+                player.pos = 35
+            else:
+                player.pos = 5
+                player.money += pass_start
+
+            cinema: Cinema = locations[player.pos]
+            if cinema.owner_id == -1:
+                buy_asset(cinema, player)
+            elif cinema.owner_id != player.player_id:
+                player.money -= Cinema.calculate_rent(cinema)*2
         else:
             player.money += card.amount
             if card.move_to != -1:
@@ -236,7 +253,6 @@ players = [
     Player(2, "pappaREal")
 ]
 
-
 def create_locations() -> list[Location]:
     return [
         Location(1, "Start"),
@@ -300,7 +316,7 @@ def create_chance_cards() -> list[ChanceCard]:
         ChanceCard(13, "Du selger aksjer og mottar kr 15000 fra banken.", -1, 15000),
         ChanceCard(14, "Du er tatt i fartskontroll og må betale kr 1000 i bot.", -1, -1000),
         ChanceCard(15, "Ligningen er utlagt og du får kr 5000 igjen på skatten.", -1, 5000),
-        ChanceCard(16, "Rykk fram til START.", 0, 0),
+        ChanceCard(16, "Rykk fram til START.", 0, pass_start),
         ChanceCard(17, "Etter tante Olga på Toten har du arvet 4 katter, en grønn papegøye, 16 juletrær på rot og kr 10000 "
                    "som utpetales av banken.", -1, 10000),
         ChanceCard(18, "Du har vunnet i Tipping. Motta kr 10000", -1, 10000),
@@ -404,10 +420,7 @@ def play():
             if issubclass(type(loc), Asset):
                 asset: Asset = loc
                 if asset.owner_id == -1:
-                    if current_player.money >= asset.price:
-                        if input("koster " + str(asset.price) + " Enter = kjøp ") == "":
-                            asset.owner_id = current_player.player_id
-                            current_player.money -= asset.price
+                    buy_asset(asset, current_player)
                 elif asset.owner_id != current_player.player_id:
                     rent_to_pay = 0
                     if type(loc) == Cinema:
@@ -466,6 +479,13 @@ def play():
     
                         else:
                             print("du har ikke denne eiendommen")
+
+
+def buy_asset(asset, current_player):
+    if current_player.money >= asset.price:
+        if input("koster " + str(asset.price) + " Enter = kjøp ") == "":
+            asset.owner_id = current_player.player_id
+            current_player.money -= asset.price
 
 
 if __name__ == '__main__':
